@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import django_heroku
+import dj_database_url
+import os
 django_heroku.settings(locals())
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,14 +82,7 @@ WSGI_APPLICATION = 'dlc_manager.wsgi.application'
 
 CORS_ALLOW_ALL_ORIGINS = True
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3', 
-        'USER': 'user',      
-        'PASSWORD': 'pass', 
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
 
 # Password validation
