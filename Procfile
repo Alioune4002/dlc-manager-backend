@@ -1,0 +1,1 @@
+web: gunicorn DLC_MANAGER.wsgi --log-file -
