@@ -17,9 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-print("Chargement de urls.py principal")  # Log pour débogage
+print("Chargement de urls.py principal")  
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('dlc_app.urls')),
+    path('', include('dlc_app.urls')),
 ]
