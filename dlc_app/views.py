@@ -8,8 +8,8 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from datetime import datetime, timedelta
 from io import BytesIO
-from xhtml2pdf import pisa
-from django.http import FileResponse, JsonResponse
+from weasyprint import HTML
+from django.http import FileResponse, JsonResponse, HttpResponse
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -133,34 +133,26 @@ def download_losses_pdf(request):
     </html>
     """
 
-    # Convert HTML to PDF
-    buffer = BytesIO()
-    pisa_status = pisa.CreatePDF(html_content, dest=buffer)
-    if pisa_status.err:
-        return JsonResponse({"error": "Erreur lors de la génération du PDF"}, status=500)
-
-    buffer.seek(0)
-    return FileResponse(
-        buffer,
-        as_attachment=True,
-        filename=f"Pertes_{year}_{month}.pdf",
-        content_type='application/pdf'
-    )
-
+    # Convert HTML to PDF with WeasyPrint
+    html = HTML(string=html_content)
+    pdf = html.write_pdf()
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Pertes_{year}_{month}.pdf"'
+    return response
 @api_view(['GET'])
 def reminders(request):
     today = timezone.now().date()
     tomorrow = today + timedelta(days=1)
     
-    # Produits à réduire (-30%) : veille de la DLC
+   
     reduce_products = Product.objects.filter(dlc=tomorrow, is_active=True)
     reduce_list = [{"name": p.name, "dlc": p.dlc, "action": "Réduire à -30%"} for p in reduce_products]
 
-    # Produits à retirer : DLC aujourd'hui
+    
     withdraw_products = Product.objects.filter(dlc=today, is_active=True)
     withdraw_list = [{"name": p.name, "dlc": p.dlc, "action": "Retirer ce soir"} for p in withdraw_products]
 
-    # Produits expirés : passer dans pertes
+    
     expired_products = Product.objects.filter(dlc__lt=today, is_active=True)
     for product in expired_products:
         Loss.objects.create(
