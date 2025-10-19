@@ -1,1 +1,1 @@
-web: gunicorn dlc_manager.wsgi --bind 0.0.0.0:$PORT
+web: gunicorn dlc_manager.wsgi --bind 0.0.0.0:$PORT --log-file -
